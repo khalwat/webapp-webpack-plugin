@@ -1,7 +1,7 @@
 const assert = require('assert');
 const child = require('./compiler');
 const Oracle = require('./oracle');
-const {tap} = require('./compat');
+const {tap, tapHtml} = require('./compat');
 
 module.exports = class WebappWebpackPlugin {
   constructor(args) {
@@ -40,13 +40,13 @@ module.exports = class WebappWebpackPlugin {
     tap(compiler, 'make', 'WebappWebpackPlugin', (compilation, callback) =>
       // Generate favicons
       child.run(this.options, compiler.context, compilation)
-        .then(result => {
+        .then(tags => {
           if (this.options.inject) {
             // Hook into the html-webpack-plugin processing and add the html
-            tap(compilation, 'html-webpack-plugin-before-html-processing', 'WebappWebpackPlugin', (htmlPluginData, callback) => {
-              const htmlPluginDataInject  = htmlPluginData.plugin.options.inject && htmlPluginData.plugin.options.favicons !== false;
+            tapHtml(compilation, 'WebappWebpackPlugin', (htmlPluginData, callback) => {
+              const htmlPluginDataInject = htmlPluginData.plugin.options.inject && htmlPluginData.plugin.options.favicons !== false;
               if ( htmlPluginDataInject || this.options.inject === 'force') {
-                htmlPluginData.html = htmlPluginData.html.replace(/(<\/head>)/i, result + '$&');
+                htmlPluginData.html = htmlPluginData.html.replace(/(<\/head>)/i, tags.join('') + '$&');
               }
               return callback(null, htmlPluginData);
             });
