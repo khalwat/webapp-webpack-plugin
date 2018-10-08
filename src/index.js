@@ -46,7 +46,10 @@ module.exports = class WebappWebpackPlugin {
             tapHtml(compilation, 'WebappWebpackPlugin', (htmlPluginData, callback) => {
               const htmlPluginDataInject = htmlPluginData.plugin.options.inject && htmlPluginData.plugin.options.favicons !== false;
               if ( htmlPluginDataInject || this.options.inject === 'force') {
-                htmlPluginData.html = htmlPluginData.html.replace(/(<\/head>)/i, tags.join('') + '$&');
+                  const result = tags.join('');
+                  let position = htmlPluginData.html.search(/<\/head>/i);
+                  position = position === -1 ? htmlPluginData.html.length : position;
+                  htmlPluginData.html = [htmlPluginData.html.slice(0, position), result, htmlPluginData.html.slice(position)].join('');
               }
               return callback(null, htmlPluginData);
             });
